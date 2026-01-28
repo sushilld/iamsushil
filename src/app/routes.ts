@@ -16,4 +16,8 @@ export const router = createBrowserRouter([
     path: "/projects",
     Component: Projects,
   },
+  {
+    path: "/gallery",
+    lazy: () => import("@/app/pages/Gallery").then((m) => ({ Component: m.default })),
+  },
 ]);

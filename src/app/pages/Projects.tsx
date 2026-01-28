@@ -1,13 +1,15 @@
-import { useState } from "react";
-import { motion } from "motion/react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Navigation } from "@/app/components/Navigation";
 import { FloatingOrbs } from "@/app/components/InteractiveBackground";
 import { projects as initialProjects } from "@/app/data/portfolio";
-import { ExternalLink, Github, Plus, X, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, Github, Plus, X, Image as ImageIcon, Lock, LogOut } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Button } from "@/app/components/ui/button";
+import { storage } from "@/app/utils/storage";
+import { toast } from "sonner";
 
 interface Project {
   id: number;
@@ -20,7 +22,10 @@ interface Project {
 }
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [password, setPassword] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newProject, setNewProject] = useState<Partial<Project>>({
     title: "",
@@ -32,10 +37,35 @@ export default function Projects() {
   });
   const [techInput, setTechInput] = useState("");
 
+  useEffect(() => {
+    setProjects(storage.getProjects(initialProjects));
+    setIsAdmin(storage.isAdmin());
+  }, []);
+
+  const handleLogin = () => {
+    // In a real app, this would be a secure backend check.
+    // For this demonstration, we use a simple hardcoded "password".
+    if (password === "admin123") {
+      storage.setAdmin(true);
+      setIsAdmin(true);
+      setShowLoginDialog(false);
+      setPassword("");
+      toast.success("Welcome back, Admin!");
+    } else {
+      toast.error("Invalid password");
+    }
+  };
+
+  const handleLogout = () => {
+    storage.setAdmin(false);
+    setIsAdmin(false);
+    toast.info("Logged out from Admin mode");
+  };
+
   const handleAddProject = () => {
     if (newProject.title && newProject.description) {
       const project: Project = {
-        id: projects.length + 1,
+        id: Date.now(), // More reliable ID for local persistence
         title: newProject.title,
         description: newProject.description,
         technologies: newProject.technologies || [],
@@ -43,7 +73,9 @@ export default function Projects() {
         demoLink: newProject.demoLink || null,
         githubLink: newProject.githubLink || null,
       };
-      setProjects([...projects, project]);
+      const updatedProjects = [...projects, project];
+      setProjects(updatedProjects);
+      storage.saveProjects(updatedProjects);
       setNewProject({
         title: "",
         description: "",
@@ -54,6 +86,7 @@ export default function Projects() {
       });
       setTechInput("");
       setShowAddDialog(false);
+      toast.success("Project added successfully!");
     }
   };
 
@@ -96,15 +129,40 @@ export default function Projects() {
               A showcase of my work in AI, ML, and Software Development
             </p>
 
-            <motion.button
-              onClick={() => setShowAddDialog(true)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Add New Project
-            </motion.button>
+            <div className="flex items-center justify-center gap-4 mb-8">
+              {isAdmin ? (
+                <>
+                  <motion.button
+                    onClick={() => setShowAddDialog(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add New Project
+                  </motion.button>
+                  <motion.button
+                    onClick={handleLogout}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/20 border border-red-500/50 text-red-500 rounded-lg hover:bg-red-500/30 transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Logout
+                  </motion.button>
+                </>
+              ) : (
+                <motion.button
+                  onClick={() => setShowLoginDialog(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <Lock className="w-5 h-5" />
+                  Admin Login
+                </motion.button>
+              )}
+            </div>
           </motion.div>
 
           {/* Projects Grid */}
@@ -206,7 +264,7 @@ export default function Projects() {
               <label className="text-sm text-gray-400 mb-2 block">Project Title</label>
               <Input
                 value={newProject.title || ""}
-                onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewProject({ ...newProject, title: e.target.value })}
                 placeholder="Enter project title"
                 className="bg-white/5 border-white/10 text-white"
               />
@@ -216,7 +274,7 @@ export default function Projects() {
               <label className="text-sm text-gray-400 mb-2 block">Description</label>
               <Textarea
                 value={newProject.description || ""}
-                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewProject({ ...newProject, description: e.target.value })}
                 placeholder="Describe your project"
                 rows={4}
                 className="bg-white/5 border-white/10 text-white"
@@ -228,8 +286,8 @@ export default function Projects() {
               <div className="flex gap-2 mb-2">
                 <Input
                   value={techInput}
-                  onChange={(e) => setTechInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTechnology())}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTechInput(e.target.value)}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && (e.preventDefault(), addTechnology())}
                   placeholder="Add technology"
                   className="bg-white/5 border-white/10 text-white flex-1"
                 />
@@ -260,7 +318,7 @@ export default function Projects() {
               <label className="text-sm text-gray-400 mb-2 block">Image URL (optional)</label>
               <Input
                 value={newProject.image || ""}
-                onChange={(e) => setNewProject({ ...newProject, image: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewProject({ ...newProject, image: e.target.value })}
                 placeholder="https://example.com/image.jpg"
                 className="bg-white/5 border-white/10 text-white"
               />
@@ -270,7 +328,7 @@ export default function Projects() {
               <label className="text-sm text-gray-400 mb-2 block">Demo Link (optional)</label>
               <Input
                 value={newProject.demoLink || ""}
-                onChange={(e) => setNewProject({ ...newProject, demoLink: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewProject({ ...newProject, demoLink: e.target.value })}
                 placeholder="https://demo.com"
                 className="bg-white/5 border-white/10 text-white"
               />
@@ -280,7 +338,7 @@ export default function Projects() {
               <label className="text-sm text-gray-400 mb-2 block">GitHub Link (optional)</label>
               <Input
                 value={newProject.githubLink || ""}
-                onChange={(e) => setNewProject({ ...newProject, githubLink: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewProject({ ...newProject, githubLink: e.target.value })}
                 placeholder="https://github.com/username/repo"
                 className="bg-white/5 border-white/10 text-white"
               />
@@ -301,6 +359,34 @@ export default function Projects() {
                 Cancel
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Login Dialog */}
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent className="bg-gray-900 border-white/20 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Admin Access</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <label className="text-sm text-gray-400 mb-2 block">Admin Password</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleLogin()}
+                placeholder="Enter password"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <Button
+              onClick={handleLogin}
+              className="w-full bg-blue-500 hover:bg-blue-600"
+            >
+              Login
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

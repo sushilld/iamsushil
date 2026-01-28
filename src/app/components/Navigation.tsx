@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router";
 import { motion } from "motion/react";
-import { Home, Clock, FolderGit2, Github, Linkedin, Mail } from "lucide-react";
+import { Home, Clock, FolderGit2, Image as ImageIcon, Github, Linkedin, Mail } from "lucide-react";
 import { personalInfo } from "@/app/data/portfolio";
 
 export function Navigation() {
@@ -10,6 +10,7 @@ export function Navigation() {
     { path: "/", label: "Home", icon: Home },
     { path: "/timeline", label: "Timeline", icon: Clock },
     { path: "/projects", label: "Projects", icon: FolderGit2 },
+    { path: "/gallery", label: "Gallery", icon: ImageIcon },
   ];
 
   return (
@@ -36,11 +37,10 @@ export function Navigation() {
                     className="relative group"
                   >
                     <motion.div
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                        isActive
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isActive
                           ? "text-blue-400"
                           : "text-gray-400 hover:text-white"
-                      }`}
+                        }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >

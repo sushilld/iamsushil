@@ -1,7 +1,7 @@
 {
-  "name": "@figma/my-make-file",
+  "name": "sushil-portfolio",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -65,8 +65,12 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",
+    "@types/node": "^22.10.10",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "4.7.0",
     "tailwindcss": "4.1.12",
+    "typescript": "^5.7.3",
     "vite": "^6.4.1"
   },
   "peerDependencies": {
