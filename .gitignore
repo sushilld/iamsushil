@@ -47,3 +47,4 @@ Desktop.ini
 coverage/
 jest.config.js
 **Zone.Identifier
+.idea/
