@@ -1,10 +1,12 @@
 import { Link, useLocation } from "react-router";
 import { motion } from "motion/react";
-import { Home, Clock, FolderGit2, Image as ImageIcon, Github, Linkedin, Mail } from "lucide-react";
+import { Home, Clock, FolderGit2, Image as ImageIcon, Github, Linkedin, Mail, Download, Terminal as TerminalIcon } from "lucide-react";
 import { personalInfo } from "@/app/data/portfolio";
+import { useTerminal } from "@/app/utils/TerminalContext";
 
 export function Navigation() {
   const location = useLocation();
+  const { openTerminal } = useTerminal();
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -38,8 +40,8 @@ export function Navigation() {
                   >
                     <motion.div
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isActive
-                          ? "text-blue-400"
-                          : "text-gray-400 hover:text-white"
+                        ? "text-blue-400"
+                        : "text-gray-400 hover:text-white"
                         }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -59,34 +61,51 @@ export function Navigation() {
             </div>
 
             <div className="flex items-center gap-4 pl-4 border-l border-white/10">
-              <motion.a
-                href={`https://${personalInfo.github}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+              <motion.button
+                onClick={openTerminal}
+                className="p-2 bg-green-500/10 border border-green-500/30 rounded-lg text-green-500 hover:bg-green-500/20 transition-all flex items-center gap-2"
+                title="Open Terminal"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Github className="w-5 h-5" />
-              </motion.a>
+                <TerminalIcon className="w-4 h-4" />
+                <span className="text-xs font-mono hidden lg:block">Terminal</span>
+              </motion.button>
+
               <motion.a
-                href={`https://${personalInfo.linkedin}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                href="/assets/Sushil_Dhakal_RESUME.pdf"
+                download="Sushil_Dhakal_RESUME.pdf"
+                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2"
+                title="Download CV"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Linkedin className="w-5 h-5" />
+                <Download className="w-4 h-4" />
+                <span className="text-xs font-medium hidden lg:block">Download CV</span>
               </motion.a>
-              <motion.a
-                href={`mailto:${personalInfo.email}`}
-                className="text-gray-400 hover:text-white transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Mail className="w-5 h-5" />
-              </motion.a>
+
+              <div className="flex items-center gap-3 ml-2">
+                <motion.a
+                  href={`https://${personalInfo.github}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Github className="w-5 h-5" />
+                </motion.a>
+                <motion.a
+                  href={`https://${personalInfo.linkedin}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Linkedin className="w-5 h-5" />
+                </motion.a>
+              </div>
             </div>
           </div>
         </div>

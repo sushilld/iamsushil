@@ -25,7 +25,10 @@ export default function Gallery() {
     const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
     useEffect(() => {
-        setImages(storage.getGallery());
+        const loadGallery = async () => {
+            setImages(await storage.getGallery());
+        };
+        loadGallery();
         setIsAdmin(storage.isAdmin());
     }, []);
 
@@ -47,7 +50,7 @@ export default function Gallery() {
         toast.info("Logged out from Admin mode");
     };
 
-    const handleAddImage = () => {
+    const handleAddImage = async () => {
         if (newImage.url) {
             const img: GalleryImage = {
                 id: Date.now(),
@@ -56,17 +59,17 @@ export default function Gallery() {
             };
             const updatedImages = [img, ...images];
             setImages(updatedImages);
-            storage.saveGallery(updatedImages);
+            await storage.saveGallery(updatedImages);
             setNewImage({ url: "", caption: "" });
             setShowAddDialog(false);
             toast.success("Image added to gallery!");
         }
     };
 
-    const removeImage = (id: number) => {
+    const removeImage = async (id: number) => {
         const updatedImages = images.filter((img) => img.id !== id);
         setImages(updatedImages);
-        storage.saveGallery(updatedImages);
+        await storage.saveGallery(updatedImages);
         toast.info("Image removed");
     };
 

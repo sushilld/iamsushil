@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { X, Minimize2, Maximize2, Terminal as TerminalIcon } from "lucide-react";
 import { personalInfo, experiences, education, projects, achievements } from "@/app/data/portfolio";
 
@@ -30,31 +30,28 @@ export function Terminal({ onClose }: { onClose: () => void }) {
   const commands: Record<string, () => string[]> = {
     help: () => [
       "Available commands:",
+      "  ls           - List virtual directories",
+      "  pwd          - Show current working directory",
       "  whoami       - Display personal information",
-      "  about        - Show detailed about me",
       "  skills       - List my technical skills",
       "  experience   - Show work experience",
       "  education    - Display education details",
       "  projects     - List my projects",
       "  achievements - Show achievements",
-      "  contact      - Get contact information",
       "  clear        - Clear the terminal",
       "  exit         - Close the terminal",
+      "  uname        - Display system information",
       "",
     ],
+    ls: () => [
+      "projects/  experience/  education/  achievements/  resume.pdf",
+    ],
+    pwd: () => ["/home/sushil"],
+    uname: () => ["Linux portfolio 6.8.0-1015-aws #17~22.04.1-Ubuntu SMP x86_64"],
     whoami: () => [
-      `Name: ${personalInfo.name}`,
-      `Title: ${personalInfo.title}`,
-      `Location: ${personalInfo.location.join(" | ")}`,
-      `Email: ${personalInfo.email}`,
-      `GitHub: ${personalInfo.github}`,
-      `LinkedIn: ${personalInfo.linkedin}`,
-      "",
-    ],
-    about: () => [
-      personalInfo.objective,
-      "",
-      `Languages: ${personalInfo.languages.map((l) => `${l.name} (${l.level})`).join(", ")}`,
+      `User: ${personalInfo.name.toLowerCase().replace(" ", "")}`,
+      `Role: ${personalInfo.title}`,
+      `Host: portfolio-v1`,
       "",
     ],
     skills: () => {
@@ -71,9 +68,6 @@ export function Terminal({ onClose }: { onClose: () => void }) {
       experiences.forEach((exp, index) => {
         output.push(`${index + 1}. ${exp.title} @ ${exp.company}`);
         output.push(`   ${exp.period} | ${exp.location}`);
-        exp.description.forEach((desc) => {
-          output.push(`   • ${desc}`);
-        });
         output.push("");
       });
       return output;
@@ -92,9 +86,7 @@ export function Terminal({ onClose }: { onClose: () => void }) {
       const output: string[] = ["Projects:", ""];
       projects.forEach((project, index) => {
         output.push(`${index + 1}. ${project.title}`);
-        output.push(`   ${project.description}`);
-        output.push(`   Technologies: ${project.technologies.join(", ")}`);
-        if (project.demoLink) output.push(`   Demo: ${project.demoLink}`);
+        output.push(`   ${project.description.slice(0, 50)}...`);
         output.push("");
       });
       return output;
@@ -103,27 +95,19 @@ export function Terminal({ onClose }: { onClose: () => void }) {
       const output: string[] = ["Achievements & Activities:", ""];
       achievements.forEach((ach, index) => {
         output.push(`${index + 1}. ${ach.title}`);
-        output.push(`   ${ach.description}`);
         output.push("");
       });
       return output;
     },
-    contact: () => [
-      "Contact Information:",
-      `Email: ${personalInfo.email}`,
-      `Phone: ${personalInfo.phone.join(" | ")}`,
-      `LinkedIn: https://${personalInfo.linkedin}`,
-      `GitHub: https://${personalInfo.github}`,
-      "",
-    ],
     clear: () => [],
     exit: () => ["Goodbye! Closing terminal..."],
   };
 
   const handleCommand = (cmd: string) => {
-    const trimmedCmd = cmd.trim().toLowerCase();
-    
-    setLines((prev) => [...prev, { type: "input", content: `$ ${cmd}` }]);
+    const parts = cmd.trim().split(" ");
+    const trimmedCmd = parts[0].toLowerCase();
+
+    setLines((prev) => [...prev, { type: "input", content: `sushil@portfolio:~$ ${cmd}` }]);
 
     if (trimmedCmd === "") {
       setLines((prev) => [...prev, { type: "output", content: "" }]);
@@ -149,8 +133,7 @@ export function Terminal({ onClose }: { onClose: () => void }) {
     } else {
       setLines((prev) => [
         ...prev,
-        { type: "error", content: `Command not found: ${trimmedCmd}. Type 'help' for available commands.` },
-        { type: "output", content: "" },
+        { type: "error", content: `bash: ${trimmedCmd}: command not found. Type 'help' for available commands.` },
       ]);
     }
   };
@@ -193,19 +176,16 @@ export function Terminal({ onClose }: { onClose: () => void }) {
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.9, opacity: 0 }}
-      className={`fixed ${
-        isMaximized
+      className={`fixed ${isMaximized
           ? "inset-4"
-          : "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px]"
-      } bg-black/95 backdrop-blur-xl border border-green-500/30 rounded-lg shadow-2xl z-50 flex flex-col overflow-hidden`}
-      drag={!isMaximized}
-      dragMomentum={false}
+          : "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[500px]"
+        } bg-black/95 backdrop-blur-xl border border-green-500/30 rounded-lg shadow-2xl z-50 flex flex-col overflow-hidden mx-4`}
     >
       {/* Terminal Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-green-500/30">
         <div className="flex items-center gap-2">
           <TerminalIcon className="w-4 h-4 text-green-500" />
-          <span className="text-sm text-green-500 font-mono">sushil@portfolio:~$</span>
+          <span className="text-xs text-green-500 font-mono">sushil@portfolio:~$</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -230,19 +210,18 @@ export function Terminal({ onClose }: { onClose: () => void }) {
       {/* Terminal Output */}
       <div
         ref={outputRef}
-        className="flex-1 overflow-y-auto p-4 font-mono text-sm"
+        className="flex-1 overflow-y-auto p-4 font-mono text-sm scrollbar-thin scrollbar-thumb-green-900"
         onClick={() => inputRef.current?.focus()}
       >
         {lines.map((line, index) => (
           <div
             key={index}
-            className={`mb-1 ${
-              line.type === "input"
+            className={`mb-1 ${line.type === "input"
                 ? "text-green-400"
                 : line.type === "error"
-                ? "text-red-400"
-                : "text-gray-300"
-            }`}
+                  ? "text-red-400"
+                  : "text-gray-300"
+              }`}
           >
             {line.content}
           </div>

@@ -38,7 +38,10 @@ export default function Projects() {
   const [techInput, setTechInput] = useState("");
 
   useEffect(() => {
-    setProjects(storage.getProjects(initialProjects));
+    const loadProjects = async () => {
+      setProjects(await storage.getProjects(initialProjects));
+    };
+    loadProjects();
     setIsAdmin(storage.isAdmin());
   }, []);
 
@@ -62,7 +65,7 @@ export default function Projects() {
     toast.info("Logged out from Admin mode");
   };
 
-  const handleAddProject = () => {
+  const handleAddProject = async () => {
     if (newProject.title && newProject.description) {
       const project: Project = {
         id: Date.now(), // More reliable ID for local persistence
@@ -75,7 +78,7 @@ export default function Projects() {
       };
       const updatedProjects = [...projects, project];
       setProjects(updatedProjects);
-      storage.saveProjects(updatedProjects);
+      await storage.saveProjects(updatedProjects);
       setNewProject({
         title: "",
         description: "",

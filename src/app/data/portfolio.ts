@@ -160,30 +160,40 @@ export const achievements = [
   {
     id: 1,
     title: "Employee of the month - Shrawan (Aug, 2024)",
+    date: "2024-08",
+    period: "Aug 2024",
     description:
       "Awarded Employee of the Month for outstanding performance and contributions",
   },
   {
     id: 2,
     title: "Research Projects - F1Soft (2024/25)",
+    date: "2024-01",
+    period: "2024/25",
     description:
       "Involved and contributed on various research project conducted by F1soft Advance Research Lab (F1ARL - 2024/25). Contributed to multiple research projects at F1Soft Advanced Research Lab, supporting innovation and development initiatives. Multilingual AI Agents, Anti Spoofing detection on Edge Devices (Mobile device) and Advance Face Comparison.",
   },
   {
     id: 3,
     title: "Niyoto Catalyst - 3rd Position (01/2022 - 08/2022)",
+    date: "2022-08",
+    period: "Aug 2022",
     description:
       "Niyoto Catalyst 2022 is an all India inter college, student's contest that will have students from multiple disciplines competing in a lateral thinking, critical reasoning and problem solving skills.",
   },
   {
     id: 4,
     title: "DeerHack 2023",
+    date: "2023-01",
+    period: "2023",
     description:
       "Leveraged participation in Deer Hack, first hackathon organized by DeerWalk Education Group, to gain valuable experience in collaborating with diverse teams and developing innovative solutions to real-world challenges.",
   },
   {
     id: 5,
     title: "Hackerrank",
+    date: "2021-01",
+    period: "2021",
     description:
       "Achieved problem solving skills certificate as well as other certificate from Hackerrank.",
   },
@@ -203,7 +213,5 @@ export const timelineEvents = [
   ...achievements.map((ach) => ({
     ...ach,
     type: "achievement" as const,
-    date: "2024-01", // Default date for achievements without specific dates
-    period: "2024",
   })),
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
