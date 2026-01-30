@@ -1,69 +1,77 @@
-/**
- * Simple storage utility for portfolio data persistence
- */
+import { createClient } from "@supabase/supabase-js";
 
-const API_BASE = "http://localhost:3001/api";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const STORAGE_KEYS = {
-  IS_ADMIN: "portfolio_is_admin",
-};
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+const ADMIN_STORAGE_KEY = "is_portfolio_admin_active";
 
 export const storage = {
+  isAdmin: (): boolean => {
+    return localStorage.getItem(ADMIN_STORAGE_KEY) === "true";
+  },
+
+  setAdmin: (status: boolean) => {
+    localStorage.setItem(ADMIN_STORAGE_KEY, String(status));
+  },
+
+  // Projects
   getProjects: async <T>(initialData: T[]): Promise<T[]> => {
     try {
-      const response = await fetch(`${API_BASE}/projects`);
-      const data = await response.json();
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (error) throw error;
       return data && data.length > 0 ? data : initialData;
     } catch (err) {
-      console.error("Failed to fetch projects:", err);
+      console.error("Failed to fetch projects from Supabase:", err);
       return initialData;
     }
   },
 
   saveProjects: async <T>(projects: T[]) => {
     try {
-      await fetch(`${API_BASE}/projects`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(projects),
-      });
+      // For Supabase, we usually upsert or replace. 
+      // Given the current structure, we'll try to upsert the whole set or handle individually.
+      // To keep it simple and match the previous logic of "saving the whole array":
+      const { error } = await supabase
+        .from("projects")
+        .upsert(projects);
+
+      if (error) throw error;
     } catch (err) {
-      console.error("Failed to save projects:", err);
+      console.error("Failed to save projects to Supabase:", err);
     }
   },
 
-  getGallery: async <T>(): Promise<T[]> => {
+  // Gallery
+  getGallery: async (): Promise<any[]> => {
     try {
-      const response = await fetch(`${API_BASE}/gallery`);
-      const data = await response.json();
+      const { data, error } = await supabase
+        .from("gallery")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (error) throw error;
       return data || [];
     } catch (err) {
-      console.error("Failed to fetch gallery:", err);
+      console.error("Failed to fetch gallery from Supabase:", err);
       return [];
     }
   },
 
-  saveGallery: async <T>(images: T[]) => {
+  saveGallery: async (images: any[]) => {
     try {
-      await fetch(`${API_BASE}/gallery`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(images),
-      });
+      const { error } = await supabase
+        .from("gallery")
+        .upsert(images);
+
+      if (error) throw error;
     } catch (err) {
-      console.error("Failed to save gallery:", err);
-    }
-  },
-
-  isAdmin: (): boolean => {
-    return localStorage.getItem(STORAGE_KEYS.IS_ADMIN) === "true";
-  },
-
-  setAdmin: (isAdmin: boolean) => {
-    if (isAdmin) {
-      localStorage.setItem(STORAGE_KEYS.IS_ADMIN, "true");
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.IS_ADMIN);
+      console.error("Failed to save gallery to Supabase:", err);
     }
   },
 };
