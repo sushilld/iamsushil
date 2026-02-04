@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Navigation } from "@/app/components/Navigation";
 import { FloatingOrbs } from "@/app/components/InteractiveBackground";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/app/components/ui/dialog";
-import { storage } from "@/app/utils/storage";
+import { supabase } from "@/app/utils/supabase";
 
 interface GalleryImage {
     id: number;
@@ -14,11 +14,21 @@ interface GalleryImage {
 
 export default function Gallery() {
     const [images, setImages] = useState<GalleryImage[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
     useEffect(() => {
         const loadGallery = async () => {
-            setImages(await storage.getGallery());
+            setIsLoading(true);
+            const { data, error } = await supabase
+                .from("gallery")
+                .select("*")
+                .order("created_at", { ascending: false });
+
+            if (!error && data) {
+                setImages(data);
+            }
+            setIsLoading(false);
         };
         loadGallery();
     }, []);
@@ -45,32 +55,39 @@ export default function Gallery() {
                     </motion.div>
 
                     {/* Gallery Grid */}
-                    <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-                        <AnimatePresence>
-                            {images.map((img, index) => (
-                                <motion.div
-                                    key={img.id}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="relative group break-inside-avoid rounded-xl overflow-hidden cursor-pointer border border-border bg-card"
-                                    onClick={() => setSelectedImage(img)}
-                                >
-                                    <img
-                                        src={img.url}
-                                        alt={img.caption}
-                                        className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
-                                        <p className="text-white font-medium">{img.caption}</p>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </div>
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-4">
+                            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                            <p className="text-muted-foreground animate-pulse">Opening gallery...</p>
+                        </div>
+                    ) : (
+                        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+                            <AnimatePresence>
+                                {images.map((img, index) => (
+                                    <motion.div
+                                        key={img.id}
+                                        initial={{ opacity: 0, y: 30 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        className="relative group break-inside-avoid rounded-xl overflow-hidden cursor-pointer border border-border bg-card"
+                                        onClick={() => setSelectedImage(img)}
+                                    >
+                                        <img
+                                            src={img.url}
+                                            alt={img.caption}
+                                            className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+                                            <p className="text-white font-medium">{img.caption}</p>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </div>
+                    )}
 
-                    {images.length === 0 && (
+                    {!isLoading && images.length === 0 && (
                         <div className="text-center py-20 text-muted-foreground">
                             <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-20" />
                             <p>No images in the gallery yet.</p>

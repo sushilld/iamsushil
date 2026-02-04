@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Plus,
     Trash2,
     Image as ImageIcon,
     X,
-    Upload
+    Upload,
+    Loader2
 } from "lucide-react";
-import { storage } from "@/app/utils/storage";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import {
@@ -18,6 +18,7 @@ import {
     DialogTitle,
 } from "@/app/components/ui/dialog";
 import { toast } from "sonner";
+import { supabase } from "@/app/utils/supabase";
 
 interface GalleryImage {
     id: number;
@@ -28,51 +29,99 @@ interface GalleryImage {
 export default function AdminGallery() {
     const [images, setImages] = useState<GalleryImage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [showAddDialog, setShowAddDialog] = useState(false);
-    const [newImage, setNewImage] = useState({ url: "", caption: "" });
+    const [newImageFile, setNewImageFile] = useState<File | null>(null);
+    const [caption, setCaption] = useState("");
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const loadGallery = async () => {
             setIsLoading(true);
-            const data = await storage.getGallery();
-            setImages(data);
+            const { data, error } = await supabase
+                .from("gallery")
+                .select("*")
+                .order("created_at", { ascending: false });
+
+            if (!error && data) {
+                setImages(data);
+            }
             setIsLoading(false);
         };
         loadGallery();
     }, []);
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setNewImageFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
     const handleSave = async () => {
-        if (!newImage.url) {
-            toast.error("Image URL is required");
+        if (!newImageFile) {
+            toast.error("Please select an image to upload");
             return;
         }
 
-        const img: GalleryImage = {
-            id: Date.now(),
-            url: newImage.url,
-            caption: newImage.caption || "A beautiful click",
-        };
+        setIsSaving(true);
+        try {
+            const fileExt = newImageFile.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const filePath = `gallery/${fileName}`;
 
-        const updatedImages = [img, ...images];
-        setImages(updatedImages);
-        await storage.saveGallery(updatedImages);
+            // 1. Upload to Storage
+            const { error: uploadError } = await supabase.storage
+                .from('portfolio-assets')
+                .upload(filePath, newImageFile);
 
-        setNewImage({ url: "", caption: "" });
-        setShowAddDialog(false);
-        toast.success("Image added to gallery");
+            if (uploadError) throw uploadError;
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('portfolio-assets')
+                .getPublicUrl(filePath);
+
+            // 3. Save to Table
+            const { error } = await supabase
+                .from("gallery")
+                .insert([{ url: publicUrl, caption: caption || "Photography" }]);
+
+            if (error) throw error;
+
+            // Refresh
+            const { data } = await supabase.from("gallery").select("*").order("created_at", { ascending: false });
+            if (data) setImages(data);
+
+            setNewImageFile(null);
+            setCaption("");
+            setPreviewUrl(null);
+            setShowAddDialog(false);
+            toast.success("Image added to gallery");
+        } catch (error: any) {
+            console.error("Gallery save error:", error);
+            toast.error(error.message || "Failed to upload image.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleDelete = async (id: number) => {
         if (window.confirm("Delete this image from gallery?")) {
-            const updatedImages = images.filter(img => img.id !== id);
-            setImages(updatedImages);
-            await storage.saveGallery(updatedImages);
-            toast.info("Image removed");
+            try {
+                const { error } = await supabase.from("gallery").delete().eq("id", id);
+                if (error) throw error;
+                setImages(images.filter(img => img.id !== id));
+                toast.info("Image removed");
+            } catch (error: any) {
+                toast.error(error.message || "Failed to delete image.");
+            }
         }
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 text-foreground pb-12">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold">Gallery Manager</h1>
@@ -104,10 +153,10 @@ export default function AdminGallery() {
                         </div>
                     ))}
                     {images.length === 0 && (
-                        <div className="col-span-full py-20 text-center border-2 border-dashed border-border rounded-xl">
-                            <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-20" />
-                            <p className="text-muted-foreground">No images in your gallery yet.</p>
-                            <Button variant="ghost" className="mt-4" onClick={() => setShowAddDialog(true)}>Upload your first photo</Button>
+                        <div className="col-span-full py-24 text-center border-2 border-dashed border-border rounded-[2rem] bg-accent/20">
+                            <ImageIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
+                            <p className="text-muted-foreground font-bold">No images in your gallery yet.</p>
+                            <Button variant="outline" className="mt-6 rounded-xl" onClick={() => setShowAddDialog(true)}>Upload your first photo</Button>
                         </div>
                     )}
                 </div>
@@ -118,32 +167,54 @@ export default function AdminGallery() {
                     <DialogHeader>
                         <DialogTitle>Add to Gallery</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-6 py-4">
                         <div className="grid gap-2">
-                            <label className="text-sm font-medium text-muted-foreground">Image URL</label>
-                            <Input
-                                value={newImage.url}
-                                onChange={e => setNewImage({ ...newImage, url: e.target.value })}
-                                placeholder="https://images.unsplash.com/..."
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <label className="text-sm font-medium text-muted-foreground">Caption</label>
-                            <Input
-                                value={newImage.caption}
-                                onChange={e => setNewImage({ ...newImage, caption: e.target.value })}
-                                placeholder="A brief description"
-                            />
+                            <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Upload Photo</label>
+                            <div className="relative p-8 rounded-2xl bg-accent/50 border-2 border-dashed border-border flex flex-col items-center justify-center text-center space-y-4 group hover:border-primary/50 transition-colors">
+                                <div className="p-4 bg-primary/10 rounded-full text-primary">
+                                    <Upload className="w-6 h-6" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="font-bold">Choose Image</p>
+                                    <p className="text-xs text-muted-foreground">JPG, PNG or WEBP (Max 5MB)</p>
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                            </div>
                         </div>
 
-                        {newImage.url && (
-                            <div className="mt-2 rounded-lg overflow-hidden border border-border aspect-video">
-                                <img src={newImage.url} alt="Preview" className="w-full h-full object-cover" />
+                        {previewUrl && (
+                            <div className="rounded-2xl overflow-hidden border border-border aspect-square relative group">
+                                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                <button
+                                    onClick={() => { setNewImageFile(null); setPreviewUrl(null); }}
+                                    className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
                             </div>
                         )}
 
-                        <Button onClick={handleSave} className="w-full mt-4">
-                            <Upload className="w-4 h-4 mr-2" /> Upload to Gallery
+                        <div className="grid gap-2">
+                            <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Caption</label>
+                            <Input
+                                value={caption}
+                                onChange={e => setCaption(e.target.value)}
+                                placeholder="Mountain hike 2024..."
+                                className="h-12 bg-background/50"
+                            />
+                        </div>
+
+                        <Button onClick={handleSave} disabled={!newImageFile || isSaving} className="w-full h-14 rounded-2xl font-bold shadow-xl shadow-primary/20">
+                            {isSaving ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <><Upload className="w-4 h-4 mr-2" /> Upload to Gallery</>
+                            )}
                         </Button>
                     </div>
                 </DialogContent>

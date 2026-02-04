@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     Plus,
     Trash2,
@@ -8,11 +8,10 @@ import {
     Github,
     Image as ImageIcon,
     Pencil,
-    X
+    X,
+    Loader2
 } from "lucide-react";
-import { motion } from "motion/react";
-import { storage } from "@/app/utils/storage";
-import { projects as initialProjects } from "@/app/data/portfolio";
+import { supabase } from "@/app/utils/supabase";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -39,6 +38,8 @@ export default function AdminProjects() {
     const [isLoading, setIsLoading] = useState(true);
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
+    const [newImageFile, setNewImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<Partial<Project>>({
         title: "",
@@ -53,12 +54,36 @@ export default function AdminProjects() {
     useEffect(() => {
         const loadProjects = async () => {
             setIsLoading(true);
-            const data = await storage.getProjects(initialProjects);
-            setProjects(data);
+            const { data, error } = await supabase
+                .from("projects")
+                .select("*")
+                .order("created_at", { ascending: false });
+
+            if (!error && data) {
+                setProjects(data);
+            }
             setIsLoading(false);
         };
         loadProjects();
     }, []);
+
+    const handleImageUpload = async (file: File) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `projects/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('portfolio-assets')
+            .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('portfolio-assets')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    };
 
     const handleSave = async () => {
         if (!formData.title || !formData.description) {
@@ -66,31 +91,59 @@ export default function AdminProjects() {
             return;
         }
 
-        let updatedProjects;
-        if (editingProject) {
-            updatedProjects = projects.map(p => p.id === editingProject.id ? { ...p, ...formData } as Project : p);
-            toast.success("Project updated successfully");
-        } else {
-            const newProject = {
-                ...formData,
-                id: Date.now(),
-                technologies: formData.technologies || [],
-            } as Project;
-            updatedProjects = [...projects, newProject];
-            toast.success("Project added successfully");
-        }
+        setIsLoading(true);
+        try {
+            let imageUrl = formData.image;
+            if (newImageFile) {
+                imageUrl = await handleImageUpload(newImageFile);
+            }
 
-        setProjects(updatedProjects);
-        await storage.saveProjects(updatedProjects);
-        handleCloseDialog();
+            const projectData = {
+                title: formData.title,
+                description: formData.description,
+                technologies: formData.technologies,
+                image: imageUrl,
+                demo_link: formData.demoLink,
+                github_link: formData.githubLink,
+            };
+
+            if (editingProject) {
+                const { error } = await supabase
+                    .from("projects")
+                    .update(projectData)
+                    .eq("id", editingProject.id);
+                if (error) throw error;
+                toast.success("Project updated successfully");
+            } else {
+                const { error } = await supabase
+                    .from("projects")
+                    .insert([projectData]);
+                if (error) throw error;
+                toast.success("Project added successfully");
+            }
+
+            // Refresh project list
+            const { data } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
+            if (data) setProjects(data);
+            handleCloseDialog();
+        } catch (error: any) {
+            console.error("Save error:", error);
+            toast.error(error.message || "Failed to save project");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleDelete = async (id: number) => {
         if (window.confirm("Are you sure you want to delete this project?")) {
-            const updatedProjects = projects.filter(p => p.id !== id);
-            setProjects(updatedProjects);
-            await storage.saveProjects(updatedProjects);
-            toast.info("Project removed");
+            try {
+                const { error } = await supabase.from("projects").delete().eq("id", id);
+                if (error) throw error;
+                setProjects(projects.filter(p => p.id !== id));
+                toast.info("Project removed");
+            } catch (error: any) {
+                toast.error(error.message || "Failed to delete project");
+            }
         }
     };
 
@@ -112,6 +165,8 @@ export default function AdminProjects() {
             githubLink: "",
         });
         setTechInput("");
+        setNewImageFile(null);
+        setPreviewUrl(null);
     };
 
     const addTech = () => {
@@ -265,13 +320,43 @@ export default function AdminProjects() {
                             </div>
                         </div>
                         <div className="grid gap-2">
-                            <label className="text-sm font-medium">Image URL</label>
-                            <Input value={formData.image || ""} onChange={e => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." />
+                            <label className="text-sm font-medium">Project Image</label>
+                            <div className="flex gap-4 items-start">
+                                <div className="w-24 h-24 rounded-lg bg-accent border-2 border-dashed border-border flex items-center justify-center overflow-hidden shrink-0 relative group">
+                                    {(previewUrl || formData.image) ? (
+                                        <img src={previewUrl || formData.image || ""} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setNewImageFile(file);
+                                                setPreviewUrl(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                    />
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Click to upload</p>
+                                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                        Best aspect ratio 16:9 or 4:3. <br />
+                                        Max size 5MB.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3">
-                        <Button variant="outline" onClick={handleCloseDialog}>Cancel</Button>
-                        <Button onClick={handleSave}>Save Changes</Button>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-border bg-card sticky bottom-0">
+                        <Button variant="outline" onClick={handleCloseDialog} disabled={isLoading}>Cancel</Button>
+                        <Button onClick={handleSave} disabled={isLoading}>
+                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            {editingProject ? "Update Project" : "Add Project"}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>

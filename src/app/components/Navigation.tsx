@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Home, Clock, FolderGit2, Image as ImageIcon, Github, Linkedin, Download, Terminal as TerminalIcon, Menu, X } from "lucide-react";
 import { personalInfo } from "@/app/data/portfolio";
 import { useTerminal } from "@/app/utils/TerminalContext";
-import { ThemeToggle } from "./ThemeToggle";
+// import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/app/components/ui/button";
 
 export function Navigation() {
@@ -94,15 +94,15 @@ export function Navigation() {
                 <span className="text-xs font-medium hidden lg:block">Download CV</span>
               </motion.a>
 
-              <div className="ml-2 pl-4 border-l border-border">
+              {/* <div className="ml-2 pl-4 border-l border-border">
                 <ThemeToggle />
-              </div>
+              </div> */}
             </div>
           </div>
 
           {/* Mobile Menu Toggle */}
           <div className="flex md:hidden items-center gap-4">
-            <ThemeToggle />
+            {/* <ThemeToggle /> */}
             <Button
               variant="ghost"
               size="icon"

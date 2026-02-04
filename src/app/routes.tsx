@@ -30,24 +30,33 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: "/admin",
-    element: (
-      <ProtectedRoute>
-      <AdminLayout />
-      </ProtectedRoute>
-    ),
+    path: "/only-for-me",
     children: [
       {
-        path: "/admin",
-        lazy: () => import("@/app/pages/AdminDashboard").then((m) => ({ Component: m.default })),
+        path: "login",
+        lazy: () => import("@/app/pages/AdminLogin").then((m) => ({ Component: m.default })),
       },
       {
-        path: "/admin/projects",
-        lazy: () => import("@/app/pages/AdminProjects").then((m) => ({ Component: m.default })),
-      },
-      {
-        path: "/admin/gallery",
-        lazy: () => import("@/app/pages/AdminGallery").then((m) => ({ Component: m.default })),
+        path: "",
+        element: (
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            path: "",
+            lazy: () => import("@/app/pages/AdminDashboard").then((m) => ({ Component: m.default })),
+          },
+          {
+            path: "projects",
+            lazy: () => import("@/app/pages/AdminProjects").then((m) => ({ Component: m.default })),
+          },
+          {
+            path: "gallery",
+            lazy: () => import("@/app/pages/AdminGallery").then((m) => ({ Component: m.default })),
+          },
+        ],
       },
     ],
   },

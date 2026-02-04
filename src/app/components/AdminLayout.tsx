@@ -14,8 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/app/components/ui/button";
-import { ThemeToggle } from "./ThemeToggle";
-import { storage } from "@/app/utils/storage";
+import { supabase } from "@/app/utils/supabase";
 import { useNavigate } from "react-router";
 
 export function AdminLayout() {
@@ -24,13 +23,13 @@ export function AdminLayout() {
     const navigate = useNavigate();
 
     const menuItems = [
-        { path: "/admin", label: "Dashboard", icon: LayoutDashboard },
-        { path: "/admin/projects", label: "Projects", icon: FolderGit2 },
-        { path: "/admin/gallery", label: "Gallery", icon: ImageIcon },
+        { path: "/only-for-me", label: "Dashboard", icon: LayoutDashboard },
+        { path: "/only-for-me/projects", label: "Projects", icon: FolderGit2 },
+        { path: "/only-for-me/gallery", label: "Gallery", icon: ImageIcon },
     ];
 
-    const handleLogout = () => {
-        storage.setAdmin(false);
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
         navigate("/");
     };
 
@@ -133,7 +132,7 @@ export function AdminLayout() {
                         </h2>
                     </div>
                     <div className="flex items-center gap-4">
-                        <ThemeToggle />
+                        {/* <ThemeToggle /> */}
                         <div className="w-10 h-10 rounded-full bg-accent border border-border flex items-center justify-center overflow-hidden">
                             <img src="/assets/images/IMG_6869.jpg" alt="Admin" className="w-full h-full object-cover" />
                         </div>

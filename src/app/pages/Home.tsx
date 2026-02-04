@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+import { supabase } from "@/app/utils/supabase";
 import { Link } from "react-router";
 import { Terminal as TerminalIcon, ArrowRight, Sparkles, Briefcase, GraduationCap } from "lucide-react";
 import { Navigation } from "@/app/components/Navigation";
@@ -10,6 +12,21 @@ import { Footer } from "@/app/components/Footer";
 
 export default function Home() {
   const { openTerminal } = useTerminal();
+  const [heroImage, setHeroImage] = useState<string>("/assets/images/IMG_20240913_131505.jpg");
+
+  useEffect(() => {
+    const fetchHeroImage = async () => {
+      const { data, error } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "hero_image")
+        .single();
+      if (!error && data?.value) {
+        setHeroImage(data.value);
+      }
+    };
+    fetchHeroImage();
+  }, []);
 
   const scrollToNext = () => {
     const nextSection = document.getElementById("experience-section");
@@ -120,7 +137,7 @@ export default function Home() {
               {/* Main Image Container */}
               <div className="relative z-10 w-[300px] h-[400px] md:w-[400px] md:h-[500px] lg:w-[450px] lg:h-[600px] rounded-[2rem] overflow-hidden border-8 border-background shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-500 group">
                 <img
-                  src="/assets/images/IMG_20240913_131505.jpg"
+                  src={heroImage}
                   alt={personalInfo.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
