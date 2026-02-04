@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router";
 import { motion } from "motion/react";
-import { Home, Clock, FolderGit2, Image as ImageIcon, Github, Linkedin, Mail, Download, Terminal as TerminalIcon } from "lucide-react";
+import { Home, Clock, FolderGit2, Image as ImageIcon, Github, Linkedin, Download, Terminal as TerminalIcon } from "lucide-react";
 import { personalInfo } from "@/app/data/portfolio";
 import { useTerminal } from "@/app/utils/TerminalContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Navigation() {
   const location = useLocation();
@@ -19,7 +20,7 @@ export function Navigation() {
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10"
+      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border"
     >
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
@@ -99,12 +100,16 @@ export function Navigation() {
                   href={`https://${personalInfo.linkedin}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
                   <Linkedin className="w-5 h-5" />
                 </motion.a>
+              </div>
+
+              <div className="ml-2 pl-4 border-l border-border">
+                <ThemeToggle />
               </div>
             </div>
           </div>

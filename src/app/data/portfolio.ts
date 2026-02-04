@@ -214,4 +214,4 @@ export const timelineEvents = [
     ...ach,
     type: "achievement" as const,
   })),
-].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
