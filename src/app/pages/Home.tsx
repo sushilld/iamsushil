@@ -23,46 +23,25 @@ export default function Home() {
       <Navigation />
 
       {/* Hero Section */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 pt-20">
-        <div className="container mx-auto max-w-6xl">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-col lg:flex-row items-center justify-between gap-12"
-          >
-            {/* Profile Image Section */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 pt-32 pb-12 overflow-hidden">
+        <div className="container mx-auto max-w-7xl">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24">
+            {/* Text Content */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              className="relative group"
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="flex-1 text-center lg:text-left order-2 lg:order-1"
             >
-              <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden border-2 border-border group-hover:border-primary/50 transition-all duration-500 shadow-2xl">
-                <img
-                  src="/assets/images/IMG_20240913_131505.jpg"
-                  alt={personalInfo.name}
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-
-              {/* Decorative Elements */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-blue-500/20 blur-2xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="absolute -top-4 -left-4 w-12 h-12 border-t-2 border-l-2 border-primary/50 rounded-tl-lg" />
-              <div className="absolute -bottom-4 -right-4 w-12 h-12 border-b-2 border-r-2 border-primary/50 rounded-br-lg" />
-            </motion.div>
-
-            <div className="flex-1 text-center lg:text-left">
               {/* Greeting */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full mb-8 shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-8 shadow-sm backdrop-blur-sm"
               >
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary uppercase tracking-wider">Welcome to my digital space</span>
+                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                <span className="text-xs font-bold text-primary uppercase tracking-[0.2em]">Crafting Intelligent Solutions</span>
               </motion.div>
 
               {/* Name */}
@@ -70,27 +49,33 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent leading-[1.1]"
+                className="text-6xl md:text-8xl lg:text-9xl font-black mb-6 tracking-tighter"
               >
-                {personalInfo.name}
+                Sushil <br />
+                <span className="bg-gradient-to-r from-primary via-blue-500 to-cyan-500 bg-clip-text text-transparent italic">
+                  Dhakal
+                </span>
               </motion.h1>
 
               {/* Title */}
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-xl md:text-2xl lg:text-3xl text-muted-foreground mb-8 font-light"
+                className="flex items-center justify-center lg:justify-start gap-4 mb-8"
               >
-                {personalInfo.title}
-              </motion.p>
+                <div className="h-[1px] w-12 bg-primary hidden lg:block" />
+                <p className="text-2xl md:text-3xl text-foreground/80 font-medium tracking-tight">
+                  {personalInfo.title}
+                </p>
+              </motion.div>
 
               {/* Objective */}
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="text-lg text-muted-foreground/80 max-w-2xl lg:mx-0 mx-auto mb-12 leading-relaxed"
+                className="text-lg md:text-xl text-muted-foreground max-w-xl lg:mx-0 mx-auto mb-12 leading-relaxed font-light"
               >
                 {personalInfo.objective}
               </motion.p>
@@ -100,59 +85,105 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="flex flex-wrap items-center lg:justify-start justify-center gap-4 mb-16"
+                className="flex flex-wrap items-center lg:justify-start justify-center gap-4"
               >
                 <motion.button
                   onClick={openTerminal}
-                  className="group flex items-center gap-2 px-6 py-3 bg-green-500/10 border border-green-500/30 rounded-lg hover:bg-green-500/20 transition-all font-mono"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="group flex items-center gap-3 px-8 py-4 bg-green-500/10 border border-green-500/20 rounded-2xl hover:bg-green-500/20 transition-all font-mono shadow-lg shadow-green-500/5"
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <TerminalIcon className="w-5 h-5 text-green-500" />
-                  <span className="text-green-500">Open Terminal</span>
+                  <TerminalIcon className="w-5 h-5 text-green-600 dark:text-green-500" />
+                  <span className="text-green-600 dark:text-green-500 font-bold">Launch Console</span>
                 </motion.button>
 
                 <Link to="/projects">
                   <motion.button
-                    className="group flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 font-semibold"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className="group flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-primary/20 font-bold"
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <span>View Projects</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </motion.button>
-                </Link>
-
-                <Link to="/gallery">
-                  <motion.button
-                    className="group flex items-center gap-2 px-6 py-3 bg-white/5 border border-border rounded-lg hover:bg-accent transition-all font-medium"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <span>View Gallery</span>
+                    <span>View Work</span>
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </motion.button>
                 </Link>
               </motion.div>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Profile Image Section - Redesigned */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, rotate: 5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ delay: 0.2, duration: 1, ease: "circOut" }}
+              className="relative order-1 lg:order-2"
+            >
+              {/* Main Image Container */}
+              <div className="relative z-10 w-[300px] h-[400px] md:w-[400px] md:h-[500px] lg:w-[450px] lg:h-[600px] rounded-[2rem] overflow-hidden border-8 border-background shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-500 group">
+                <img
+                  src="/assets/images/IMG_20240913_131505.jpg"
+                  alt={personalInfo.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+
+                {/* Overlay Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+
+                {/* Hover Details Overlay */}
+                <div className="absolute inset-x-0 bottom-0 p-8 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-gradient-to-t from-primary/90 to-transparent backdrop-blur-sm">
+                  <p className="text-primary-foreground font-bold text-lg mb-1">{personalInfo.name}</p>
+                  <p className="text-primary-foreground/70 text-sm italic">{personalInfo.location[0]}</p>
+                </div>
+              </div>
+
+              {/* Decorative Floating Elements */}
+              <motion.div
+                animate={{ y: [0, -20, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-12 -right-12 w-40 h-40 bg-blue-500/20 blur-[80px] rounded-full -z-10"
+              />
+              <motion.div
+                animate={{ y: [0, 20, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute -bottom-12 -left-12 w-48 h-48 bg-purple-500/20 blur-[100px] rounded-full -z-10"
+              />
+
+              {/* Border Glow */}
+              <div className="absolute -inset-2 bg-gradient-to-br from-primary/30 via-blue-500/30 to-cyan-500/30 blur-2xl rounded-[2.5rem] -z-20 opacity-50" />
+
+              {/* Floating Badge */}
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1, duration: 0.8 }}
+                className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 z-20 bg-background/90 backdrop-blur-md border border-border p-4 md:p-6 rounded-3xl shadow-2xl flex items-center gap-4"
+              >
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Current Role</p>
+                  <p className="text-sm md:text-lg font-black leading-tight text-foreground">AI / ML<br />Engineer</p>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, repeat: Infinity, repeatType: "reverse", duration: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer hidden md:block"
+          transition={{ delay: 1.5, repeat: Infinity, repeatType: "reverse", duration: 1.5 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 cursor-pointer hidden lg:block"
           onClick={scrollToNext}
         >
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <span className="text-[10px] uppercase tracking-widest font-bold">Scroll</span>
-            <div className="w-6 h-10 border-2 border-border rounded-full flex items-start justify-center p-2">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground/60 hover:text-primary transition-colors">
+            <span className="text-[10px] uppercase tracking-[0.4em] font-black">Explore</span>
+            <div className="w-6 h-10 border border-current rounded-full flex items-start justify-center p-1.5">
               <motion.div
-                animate={{ y: [0, 12, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="w-1 h-2 bg-primary/60 rounded-full"
+                animate={{ y: [0, 16, 0] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                className="w-1 h-3 bg-primary rounded-full shadow-[0_0_5px_rgba(var(--primary),0.5)]"
               />
             </div>
           </div>

@@ -1,27 +1,50 @@
-"use client";
-
-import React from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
-import { Mail, MessageSquare, Send, Github, Linkedin, Twitter } from "lucide-react";
+import { Mail, MessageSquare, Send, Github, Linkedin } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { toast } from "sonner";
+import { personalInfo } from "@/app/data/portfolio";
+import { supabase } from "@/app/utils/supabase";
 
 export function Contact() {
-    const handleSubmit = (e: React.FormEvent) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        toast.success("Message sent! I'll get back to you soon.");
+        setIsSubmitting(true);
+
+        const formData = new FormData(e.currentTarget);
+        const data = {
+            name: formData.get("name") as string,
+            email: formData.get("email") as string,
+            subject: formData.get("subject") as string,
+            message: formData.get("message") as string,
+        };
+
+        try {
+            const { error } = await supabase.from("contacts").insert([data]);
+
+            if (error) throw error;
+
+            toast.success("Message sent! I'll get back to you soon.");
+            (e.target as HTMLFormElement).reset();
+        } catch (error: any) {
+            console.error("Error submitting form:", error);
+            toast.error(error.message || "Failed to send message. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const socialLinks = [
-        { icon: <Github className="w-5 h-5" />, label: "GitHub", href: "https://github.com/sushilld" },
-        { icon: <Linkedin className="w-5 h-5" />, label: "LinkedIn", href: "https://linkedin.com/in/sushilld" },
-        { icon: <Twitter className="w-5 h-5" />, label: "Twitter", href: "https://twitter.com/sushilld" },
+        { icon: <Github className="w-5 h-5" />, label: "GitHub", href: `https://${personalInfo.github}` },
+        { icon: <Linkedin className="w-5 h-5" />, label: "LinkedIn", href: `https://${personalInfo.linkedin}` },
     ];
 
     return (
-        <section id="contact" className="relative z-10 py-24 px-4 overflow-hidden">
+        <section id="contact" className="relative z-10 py-24 px-4 overflow-hidden bg-background/50">
             <div className="container mx-auto max-w-6xl">
                 <div className="grid lg:grid-cols-2 gap-16 items-start">
                     {/* Text Content */}
@@ -54,13 +77,13 @@ export function Contact() {
                         </div>
 
                         <div className="space-y-4">
-                            <div className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border group hover:border-primary/50 transition-colors">
-                                <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border group hover:border-primary/50 transition-colors shadow-sm">
+                                <div className="p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors shadow-inner">
                                     <Mail className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Email Me</p>
-                                    <p className="text-lg font-semibold">contact@sushildhakal.com</p>
+                                    <p className="text-lg font-semibold truncate leading-tight">{personalInfo.email}</p>
                                 </div>
                             </div>
 
@@ -73,7 +96,7 @@ export function Contact() {
                                         rel="noopener noreferrer"
                                         whileHover={{ scale: 1.1, y: -2 }}
                                         whileTap={{ scale: 0.9 }}
-                                        className="p-3 bg-card border border-border rounded-lg text-muted-foreground hover:text-primary hover:border-primary transition-colors focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="p-3 bg-card border border-border rounded-lg text-muted-foreground hover:text-primary hover:border-primary transition-colors focus:ring-2 focus:ring-primary/20 outline-none shadow-sm"
                                         aria-label={link.label}
                                     >
                                         {link.icon}
@@ -97,29 +120,35 @@ export function Contact() {
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium ml-1">Full Name</label>
-                                    <Input placeholder="John Doe" required className="bg-background/50 border-border focus:ring-2 focus:ring-primary/20" />
+                                    <Input name="name" placeholder="John Doe" required className="bg-background/50 border-border focus:ring-2 focus:ring-primary/20 h-12" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium ml-1">Email Address</label>
-                                    <Input type="email" placeholder="john@example.com" required className="bg-background/50 border-border focus:ring-2 focus:ring-primary/20" />
+                                    <Input type="email" name="email" placeholder="john@example.com" required className="bg-background/50 border-border focus:ring-2 focus:ring-primary/20 h-12" />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium ml-1">Subject</label>
-                                <Input placeholder="How can I help you?" required className="bg-background/50 border-border focus:ring-2 focus:ring-primary/20" />
+                                <Input name="subject" placeholder="How can I help you?" required className="bg-background/50 border-border focus:ring-2 focus:ring-primary/20 h-12" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium ml-1">Your Message</label>
                                 <Textarea
+                                    name="message"
                                     placeholder="Tell me more about your project..."
                                     rows={5}
                                     required
                                     className="bg-background/50 border-border focus:ring-2 focus:ring-primary/20 resize-none"
                                 />
                             </div>
-                            <Button type="submit" size="lg" className="w-full group py-6 text-base font-bold shadow-xl shadow-primary/20">
-                                Send Message
-                                <Send className="w-5 h-5 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            <Button
+                                type="submit"
+                                size="lg"
+                                disabled={isSubmitting}
+                                className="w-full group py-6 text-base font-bold shadow-xl shadow-primary/20 transition-all active:scale-95"
+                            >
+                                {isSubmitting ? "Sending..." : "Send Message"}
+                                <Send className={`w-5 h-5 ml-2 transition-transform ${isSubmitting ? "animate-ping" : "group-hover:translate-x-1 group-hover:-translate-y-1"}`} />
                             </Button>
                         </form>
                     </motion.div>

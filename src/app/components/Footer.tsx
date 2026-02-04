@@ -1,7 +1,8 @@
 "use client";
 
 import { Link } from "react-router";
-import { Github, Linkedin, Twitter, Mail, Heart } from "lucide-react";
+import { Github, Linkedin, Mail, Heart } from "lucide-react";
+import { personalInfo } from "@/app/data/portfolio";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -14,10 +15,9 @@ export function Footer() {
     ];
 
     const socialLinks = [
-        { icon: <Github className="w-5 h-5" />, href: "https://github.com/sushilld" },
-        { icon: <Linkedin className="w-5 h-5" />, href: "https://linkedin.com/in/sushilld" },
-        { icon: <Twitter className="w-5 h-5" />, href: "https://twitter.com/sushilld" },
-        { icon: <Mail className="w-5 h-5" />, href: "mailto:contact@sushildhakal.com" },
+        { icon: <Github className="w-5 h-5" />, href: `https://${personalInfo.github}` },
+        { icon: <Linkedin className="w-5 h-5" />, href: `https://${personalInfo.linkedin}` },
+        { icon: <Mail className="w-5 h-5" />, href: `mailto:${personalInfo.email}` },
     ];
 
     return (
@@ -72,11 +72,11 @@ export function Footer() {
                     <div className="space-y-6">
                         <h4 className="text-sm font-bold uppercase tracking-wider">Contact</h4>
                         <ul className="space-y-4 text-sm text-muted-foreground">
-                            <li className="flex items-center gap-2 italic">
+                            <li className="flex items-center gap-2 italic underline underline-offset-4 decoration-primary/30">
                                 <Mail className="w-4 h-4" />
-                                sushildhakal@gmail.com
+                                {personalInfo.email}
                             </li>
-                            <li>Kathmandu, Nepal</li>
+                            <li>{personalInfo.location[0]}</li>
                             <li>Available for freelance</li>
                         </ul>
                     </div>
