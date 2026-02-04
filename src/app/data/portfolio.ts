@@ -1,7 +1,7 @@
 export const personalInfo = {
   name: "Sushil Dhakal",
   title: "AI/ML & Backend Engineer",
-  email: "sushildhakal312@gmail.com",
+  email: "sushildhakal50714@gmail.com",
   phone: ["+977-9863038534", "+91-9041826077"],
   location: ["Kathmandu, Nepal", "Chandigarh, India"],
   linkedin: "linkedin.com/in/sushil3125",
@@ -214,4 +214,4 @@ export const timelineEvents = [
     ...ach,
     type: "achievement" as const,
   })),
-].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
